@@ -52,7 +52,7 @@ export async function POST(
     });
 
     // Prepare messages for API
-    const messages = conversation.messages.map((m) => ({
+    const messages = conversation.messages.map((m: { role: string; content: string }) => ({
       role: m.role as 'user' | 'assistant' | 'system',
       content: m.content,
     }));
@@ -62,7 +62,7 @@ export async function POST(
       model: agent.model,
       max_tokens: 1024,
       system: agent.system_prompt,
-      messages: messages.filter((m) => m.role !== 'system'),
+      messages: messages.filter((m: { role: 'user' | 'assistant' | 'system'; content: string }) => m.role !== 'system'),
     });
 
     const assistantMessage =

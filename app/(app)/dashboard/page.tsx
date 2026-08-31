@@ -24,8 +24,8 @@ export default function DashboardPage() {
     async function loadData() {
       try {
         const [clients, projects] = await Promise.all([
-          api.get('/api/clients'),
-          api.get('/api/projects'),
+          api.get<any[]>('/api/clients'),
+          api.get<any[]>('/api/projects'),
         ])
 
         setStats({
@@ -72,18 +72,14 @@ export default function DashboardPage() {
           <p className="text-muted-foreground mt-1">Welcome back to your agency</p>
         </div>
         <div className="flex gap-2">
-          <Button asChild variant="outline" className="border-border hover:bg-card">
-            <Link href="/clients/new">
-              <Plus className="w-4 h-4 mr-2" />
-              New Client
-            </Link>
-          </Button>
-          <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
-            <Link href="/projects/new">
-              <Plus className="w-4 h-4 mr-2" />
-              New Project
-            </Link>
-          </Button>
+          <Link href="/clients/new" className="inline-flex items-center rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-card">
+            <Plus className="mr-2 h-4 w-4" />
+            New Client
+          </Link>
+          <Link href="/projects/new" className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+            <Plus className="mr-2 h-4 w-4" />
+            New Project
+          </Link>
         </div>
       </div>
 
