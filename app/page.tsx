@@ -55,7 +55,7 @@ export default function Page() {
   return (
     <main className="min-h-screen bg-background text-foreground">
       <header className="topbar">
-        <div className="brand"><span className="brand-mark">///</span><span>PAYPHONE<br /><b>TAG</b></span><small>FIELD SYSTEM v0.4</small></div>
+        <div className="brand"><span className="brand-mark">///</span><span>DIAL TO<br /><b>ENTER</b></span><small>FIELD SYSTEM v0.1</small></div>
         <div className="live"><span className="live-dot" /> LIVE WORLD SYNC <span className="divider" /> SAN FRANCISCO // 21:47</div>
         <button className="icon-button" aria-label="Notifications"><Bell /></button>
       </header>
@@ -64,7 +64,7 @@ export default function Page() {
 
       <div className="layout">
         <section className="map-panel">
-          <div className="map-heading"><div><p className="eyebrow">SECTOR 07 / DOWNTOWN</p><h1>Find the <em>ringing</em> phone.</h1></div><button className="scan-button" onClick={() => setEventTick(129)}><Activity data-icon="inline-start" /> SCAN CITY</button></div>
+          <div className="map-heading"><div><p className="eyebrow">SECTOR 07 / DOWNTOWN</p><h1>Find the <em>ringing</em> terminal.</h1></div><button className="scan-button" onClick={() => setEventTick(129)}><Activity data-icon="inline-start" /> SCAN CITY</button></div>
           <div className="map-canvas" aria-label="Signal map showing nearby payphones">
             <div className="map-label label-one">MASON ST <span>→</span></div><div className="map-label label-two">MARKET ST <span>↓</span></div><div className="map-label label-three">UNION SQ.</div>
             <div className="street street-a" /><div className="street street-b" /><div className="street street-c" /><div className="street street-d" />

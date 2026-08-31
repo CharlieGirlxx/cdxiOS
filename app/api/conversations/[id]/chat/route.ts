@@ -15,9 +15,10 @@ const client = new Anthropic({
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await connectDB();
     const user = getAuthUser(req);
     if (!user) {
@@ -29,7 +30,7 @@ export async function POST(
 
     // Fetch conversation
     const conversation = await Conversation.findOne({
-      id: params.id,
+      id,
       user_id: user.id,
     });
 

@@ -10,8 +10,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'PAYPHONE TAG // Field System',
-  description: 'Trace ringing payphones, answer the call, and claim the city before the signal moves.',
+  title: 'DIAL TO ENTER // Field System',
+  description: 'Find a terminal, dial the Operator, and enter the invisible layer of the city.',
   generator: 'v0.app',
   icons: {
     icon: '/favicon.ico',

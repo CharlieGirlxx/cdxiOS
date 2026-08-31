@@ -15,7 +15,7 @@ export default function ClientsPage() {
   useEffect(() => {
     async function loadClients() {
       try {
-        const data = await api.get('/api/clients')
+        const data = await api.get<any[]>('/api/clients')
         setClients(data)
       } catch (error) {
         console.error('Failed to load clients:', error)
