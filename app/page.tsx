@@ -6,15 +6,17 @@ import { Activity, Bell, ChevronRight, Crosshair, MapPin, Radio, Shield, Signal,
 type NodeState = 'RINGING' | 'JAMMED' | 'CLAIMED' | 'CONTESTED'
 type EventKind = 'WEATHER' | 'TRANSIT' | 'CROWD' | 'ANOMALY'
 
-type Payphone = { id: string; name: string; area: string; distance: string; xp: number; rarity: string; state: NodeState; x: number; y: number; clue: string }
+type Payphone = { id: string; name: string; area: string; distance: string; xp: number; rarity: string; state: NodeState; x: number; y: number; clue: string; lat: number; lon: number; sourceId: string }
 type WorldEvent = { kind: EventKind; title: string; detail: string; modifier: string; time: string; color: string }
 
+// Source: Telstra payphone directory snapshot, published via jvrck-labs/aus-payphones-data (2022-05-09).
+// Coordinates and cabinet IDs are retained for provenance; game names/statuses are fictional overlays.
 const initialNodes: Payphone[] = [
-  { id: '01', name: 'THE SWITCHBOARD', area: 'Mason & 4th', distance: '0.3 mi', xp: 240, rarity: 'EPIC', state: 'RINGING', x: 27, y: 33, clue: 'A voice is asking for the red door.' },
-  { id: '02', name: 'BLUE HOUR', area: 'Union Square', distance: '0.7 mi', xp: 120, rarity: 'RARE', state: 'CONTESTED', x: 61, y: 24, clue: 'Look up. The city is watching back.' },
-  { id: '03', name: 'DEAD DROP 09', area: 'Civic Center', distance: '1.1 mi', xp: 80, rarity: 'COMMON', state: 'JAMMED', x: 77, y: 66, clue: 'Signal buried under the moving noise.' },
-  { id: '04', name: 'NIGHT CRAWLER', area: 'Market Street', distance: '1.5 mi', xp: 180, rarity: 'RARE', state: 'RINGING', x: 36, y: 76, clue: 'Do not answer after the third ring.' },
-  { id: '05', name: 'GHOST LINE', area: 'Tenderloin', distance: '1.9 mi', xp: 300, rarity: 'LEGENDARY', state: 'CLAIMED', x: 76, y: 37, clue: 'The last operative left a trace.' },
+  { id: '01', sourceId: '08835222X2', name: 'AIRPORT RELAY', area: 'Brooklyn Park, SA', distance: '0.3 mi', xp: 240, rarity: 'EPIC', state: 'RINGING', x: 27, y: 33, lat: -34.92925, lon: 138.54243, clue: 'A voice is asking for the red door.' },
+  { id: '02', sourceId: '07326614X2', name: 'NORTHGATE LINE', area: 'Northgate, QLD', distance: '0.7 mi', xp: 120, rarity: 'RARE', state: 'CONTESTED', x: 61, y: 24, lat: -27.388611, lon: 153.070395, clue: 'Look up. The city is watching back.' },
+  { id: '03', sourceId: '03979146X2', name: 'DOVETON DROP', area: 'Doveton, VIC', distance: '1.1 mi', xp: 80, rarity: 'COMMON', state: 'JAMMED', x: 77, y: 66, lat: -37.985451, lon: 145.239342, clue: 'Signal buried under the moving noise.' },
+  { id: '04', sourceId: '03933599X2', name: 'AIRPORT GATE 6', area: 'Melbourne Airport, VIC', distance: '1.5 mi', xp: 180, rarity: 'RARE', state: 'RINGING', x: 36, y: 76, lat: -37.670642, lon: 144.848155, clue: 'Do not answer after the third ring.' },
+  { id: '05', sourceId: 'TELSTRA-LEGACY-05', name: 'GHOST LINE', area: 'Australian directory', distance: '1.9 mi', xp: 300, rarity: 'LEGENDARY', state: 'CLAIMED', x: 76, y: 37, lat: -33.8688, lon: 151.2093, clue: 'The last operative left a trace.' },
 ]
 
 const events: WorldEvent[] = [
@@ -64,16 +66,16 @@ export default function Page() {
 
       <div className="layout">
         <section className="map-panel">
-          <div className="map-heading"><div><p className="eyebrow">SECTOR 07 / DOWNTOWN</p><h1>Find the <em>ringing</em> terminal.</h1></div><button className="scan-button" onClick={() => setEventTick(129)}><Activity data-icon="inline-start" /> SCAN CITY</button></div>
+          <div className="map-heading"><div><p className="eyebrow">TELSTRA DIRECTORY / AUSTRALIA</p><h1>Find the <em>ringing</em> terminal.</h1></div><button className="scan-button" onClick={() => setEventTick(129)}><Activity data-icon="inline-start" /> SCAN CITY</button></div>
           <div className="map-canvas" aria-label="Signal map showing nearby payphones">
             <div className="map-label label-one">MASON ST <span>→</span></div><div className="map-label label-two">MARKET ST <span>↓</span></div><div className="map-label label-three">UNION SQ.</div>
             <div className="street street-a" /><div className="street street-b" /><div className="street street-c" /><div className="street street-d" />
             <div className="player"><span /><b>YOU</b></div>
             {nodes.map((node) => <button key={node.id} className={`node node-${node.state.toLowerCase()} ${selectedId === node.id ? 'selected' : ''}`} style={{ left: `${node.x}%`, top: `${node.y}%` }} onClick={() => { setSelectedId(node.id); setPhase('idle') }} aria-label={`${node.name}, ${node.state}`}><span className="node-ring" /><strong>{node.state === 'RINGING' ? '☎' : node.state === 'CLAIMED' ? '✓' : node.state === 'CONTESTED' ? '!' : '×'}</strong><small>{node.id}</small></button>)}
             <div className="event-zone"><span /><b>ANOMALY ZONE</b><small>0.8 MI RADIUS</small></div>
-            <div className="map-coords">37.7749° N<br />122.4194° W</div><div className="map-key"><span className="legend-ring" /> RINGING <span className="legend-you" /> YOU <span className="legend-zone" /> WORLD EVENT</div>
+            <div className="map-coords">TELSTRA PAYPHONE DIRECTORY<br />SNAPSHOT // 2022-05-09</div><div className="map-key"><span className="legend-ring" /> RINGING <span className="legend-you" /> YOU <span className="legend-zone" /> WORLD EVENT</div>
           </div>
-          <div className="map-footer"><span><Crosshair /> GPS SIMULATION ACTIVE</span><span>5 SIGNALS IN RANGE</span><span className="footer-right">EVENT DATA: SIMULATED <span className="green-text">●</span></span></div>
+          <div className="map-footer"><span><Crosshair /> GPS SIMULATION ACTIVE</span><span>5 SIGNALS IN RANGE</span><span className="footer-right">PAYPHONE DATA: TELSTRA DIRECTORY · 2022 SNAPSHOT <span className="green-text">●</span></span></div>
         </section>
 
         <aside className="side-panel">
