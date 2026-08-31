@@ -10,8 +10,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'cdxi | OS - AI Agency Operating System',
-  description: 'Enterprise CRM and AI agent management system for modern agencies',
+  title: 'PAYPHONE TAG // Field System',
+  description: 'Trace ringing payphones, answer the call, and claim the city before the signal moves.',
   generator: 'v0.app',
   icons: {
     icon: '/favicon.ico',
