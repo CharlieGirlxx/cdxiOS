@@ -12,34 +12,19 @@ type LocalContext = { place: string; landmark: string; headline: string; detail:
 
 // Source: Telstra payphone directory snapshot, published via jvrck-labs/aus-payphones-data (2022-05-09).
 // Coordinates and cabinet IDs are retained for provenance; game names/statuses are fictional overlays.
-const initialNodes: Payphone[] = [
-  { id: '01', sourceId: '08835222X2', name: 'AIRPORT RELAY', area: 'Brooklyn Park, SA', distance: '0.3 mi', xp: 240, rarity: 'EPIC', state: 'RINGING', x: 27, y: 33, lat: -34.92925, lon: 138.54243, clue: 'A voice is asking for the red door.' },
-  { id: '02', sourceId: '07326614X2', name: 'NORTHGATE LINE', area: 'Northgate, QLD', distance: '0.7 mi', xp: 120, rarity: 'RARE', state: 'CONTESTED', x: 61, y: 24, lat: -27.388611, lon: 153.070395, clue: 'Look up. The city is watching back.' },
-  { id: '03', sourceId: '03979146X2', name: 'DOVETON DROP', area: 'Doveton, VIC', distance: '1.1 mi', xp: 80, rarity: 'COMMON', state: 'JAMMED', x: 77, y: 66, lat: -37.985451, lon: 145.239342, clue: 'Signal buried under the moving noise.' },
-  { id: '04', sourceId: '03933599X2', name: 'AIRPORT GATE 6', area: 'Melbourne Airport, VIC', distance: '1.5 mi', xp: 180, rarity: 'RARE', state: 'RINGING', x: 36, y: 76, lat: -37.670642, lon: 144.848155, clue: 'Do not answer after the third ring.' },
-  { id: '05', sourceId: 'TELSTRA-LEGACY-05', name: 'GHOST LINE', area: 'Australian directory', distance: '1.9 mi', xp: 300, rarity: 'LEGENDARY', state: 'CLAIMED', x: 76, y: 37, lat: -33.8688, lon: 151.2093, clue: 'The last operative left a trace.' },
-]
+const initialNodes: Payphone[] = []
 
-const events: WorldEvent[] = [
-  { kind: 'WEATHER', title: 'ADELAIDE CLOUD COVER', detail: 'Visibility changes the airport relay', modifier: '+2× rare signals', time: 'LIVE', color: 'cyan', source: 'BOM weather observation', status: 'LIVE', locality: 'Adelaide Airport', href: 'https://www.bom.gov.au/' },
-  { kind: 'TRANSIT', title: 'NORTHGATE MOVEMENT', detail: 'Transit activity reroutes the signal path', modifier: '3 nodes rerouted', time: 'RECENT', color: 'amber', source: 'Translink service alerts', status: 'RECENT', locality: 'Northgate, Brisbane', href: 'https://www.translink.com.au/updates' },
-  { kind: 'ANOMALY', title: 'MELBOURNE CULTURE PING', detail: 'Pop-culture venues amplify nearby traces', modifier: 'LIMITED-TIME RING', time: 'DEMO', color: 'green', source: 'City events adapter', status: 'SIMULATED', locality: 'Melbourne Airport corridor', href: 'https://whatson.melbourne.vic.gov.au/' },
-]
-
-const localContext: LocalContext[] = [
-  { place: 'BROOKLYN PARK, SA', landmark: 'Adelaide Airport', headline: 'Airport relay sits inside the live weather sector.', detail: 'Cloud cover lowers visibility but creates a rare-signal bonus around the real Telstra directory coordinate.', source: 'Bureau of Meteorology', time: 'updated now', status: 'LIVE', tag: 'WEATHER', href: 'https://www.bom.gov.au/' },
-  { place: 'NORTHGATE, QLD', landmark: 'Northgate station', headline: 'Transit movement is making the route unstable.', detail: 'The hunt path bends toward the station sector while the live-world adapter reports a service update.', source: 'Translink', time: '18 min ago', status: 'RECENT', tag: 'TRANSIT', href: 'https://www.translink.com.au/updates' },
-  { place: 'DOVETON, VIC', landmark: 'Dandenong corridor', headline: 'A local culture clue is waiting behind the jam.', detail: 'This demo fixture shows how venue listings and pop-culture moments can turn a real place into a temporary hunt.', source: 'City events adapter', time: 'fixture', status: 'SIMULATED', tag: 'POP CULTURE', href: 'https://www.visitmelbourne.com/' },
-]
+const events: WorldEvent[] = []
+const localContext: LocalContext[] = []
 
 export default function Page() {
   const [nodes, setNodes] = useState(initialNodes)
-  const [selectedId, setSelectedId] = useState('01')
+  const [selectedId, setSelectedId] = useState<string | null>(null)
   const [phase, setPhase] = useState<'idle' | 'tracing' | 'connected' | 'claimed'>('idle')
-  const [xp, setXp] = useState(2840)
-  const [streak, setStreak] = useState(3)
+  const [xp, setXp] = useState(0)
+  const [streak, setStreak] = useState(0)
   const [eventTick, setEventTick] = useState(129)
-  const selected = useMemo(() => nodes.find((node) => node.id === selectedId) ?? nodes[0], [nodes, selectedId])
+  const selected = useMemo(() => nodes.find((node) => node.id === selectedId), [nodes, selectedId])
 
   useEffect(() => {
     const timer = window.setInterval(() => setEventTick((value) => (value > 0 ? value - 1 : 129)), 1000)
@@ -47,19 +32,20 @@ export default function Page() {
   }, [])
 
   function traceSignal() {
-    if (selected.state === 'JAMMED' || phase === 'tracing' || phase === 'connected' || phase === 'claimed') return
+    if (!selected || selected?.state === 'JAMMED' || phase === 'tracing' || phase === 'connected' || phase === 'claimed') return
     setPhase('tracing')
     window.setTimeout(() => setPhase('connected'), 1400)
   }
 
   function claimNode() {
+    if (!selected) return
     setPhase('claimed')
     setXp((value) => value + selected.xp)
     setStreak((value) => value + 1)
     setNodes((current) => current.map((node) => node.id === selected.id ? { ...node, state: 'CLAIMED' } : node))
   }
 
-  const status = phase === 'tracing' ? 'TRACING SIGNAL...' : phase === 'connected' ? 'LINE CONNECTED' : phase === 'claimed' ? 'PAYPHONE CLAIMED' : selected.state === 'JAMMED' ? 'SIGNAL JAMMED' : 'READY TO TRACE'
+  const status = phase === 'tracing' ? 'TRACING SIGNAL...' : phase === 'connected' ? 'LINE CONNECTED' : phase === 'claimed' ? 'PAYPHONE CLAIMED' : selected?.state === 'JAMMED' ? 'SIGNAL JAMMED' : 'READY TO TRACE'
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -69,7 +55,7 @@ export default function Page() {
         <button className="icon-button" aria-label="Notifications"><Bell /></button>
       </header>
 
-      <section className="ticker"><div className="ticker-label"><Radio /> WORLD EVENTS</div><div className="ticker-event"><span className="event-pulse" /> {events[0].title} <span>{events[0].modifier}</span></div><div className="ticker-event muted">{events[1].title} <span>{events[1].modifier}</span></div><div className="ticker-clock">NEXT SYNC 00:{String(eventTick).padStart(2, '0')}</div></section>
+      <section className="ticker"><div className="ticker-label"><Radio /> WORLD EVENTS</div><div className="ticker-event muted"><span className="event-pulse" /> No live events loaded <span>SYNC A LOCATION TO BEGIN</span></div><div className="ticker-event muted">The board is waiting for your first real-world scan</div><div className="ticker-clock">NEXT SYNC 00:{String(eventTick).padStart(2, '0')}</div></section>
 
       <div className="layout">
         <section className="map-panel">
@@ -80,16 +66,16 @@ export default function Page() {
             <div className="player"><span /><b>YOU</b></div>
             {nodes.map((node) => <button key={node.id} className={`node node-${node.state.toLowerCase()} ${selectedId === node.id ? 'selected' : ''}`} style={{ left: `${node.x}%`, top: `${node.y}%` }} onClick={() => { setSelectedId(node.id); setPhase('idle') }} aria-label={`${node.name}, ${node.state}`}><span className="node-ring" /><strong>{node.state === 'RINGING' ? '☎' : node.state === 'CLAIMED' ? '✓' : node.state === 'CONTESTED' ? '!' : '×'}</strong><small>{node.id}</small></button>)}
             <div className="event-zone"><span /><b>ANOMALY ZONE</b><small>0.8 MI RADIUS</small></div>
-            <div className="map-coords">TELSTRA PAYPHONE DIRECTORY<br />SNAPSHOT // 2022-05-09</div><div className="map-key"><span className="legend-ring" /> RINGING <span className="legend-you" /> YOU <span className="legend-zone" /> WORLD EVENT</div>
+            <div className="map-coords">NO LOCATION LOCKED<br />SCAN TO START A FRESH GAME</div><div className="map-key"><span className="legend-ring" /> RINGING <span className="legend-you" /> YOU <span className="legend-zone" /> WORLD EVENT</div>
           </div>
-          <div className="map-footer"><span><Crosshair /> GPS SIMULATION ACTIVE</span><span>5 SIGNALS IN RANGE</span><span className="footer-right">PAYPHONE DATA: TELSTRA DIRECTORY · 2022 SNAPSHOT <span className="green-text">●</span></span></div>
-          <section className="context-panel"><div className="section-head"><span className="eyebrow">REAL-WORLD CONTEXT // LOCATION LOCKED</span><span className="context-lock">SOURCES VERIFIED / FIXTURES LABELED</span></div><div className="context-grid">{localContext.map((item) => <article className="context-card" key={item.place}><div className="context-card-top"><span className={`context-status ${item.status.toLowerCase()}`}>{item.status}</span><span>{item.tag}</span></div><p className="eyebrow">{item.place} · {item.landmark}</p><h3>{item.headline}</h3><p>{item.detail}</p><div className="context-source"><span>{item.source} · {item.time}</span><a href={item.href} target="_blank" rel="noreferrer">OPEN SOURCE ↗</a></div></article>)}</div></section>
+          <div className="map-footer"><span><Crosshair /> GPS SIMULATION ACTIVE</span><span>{nodes.length} SIGNALS IN RANGE</span><span className="footer-right">PAYPHONE DATA: TELSTRA DIRECTORY · 2022 SNAPSHOT <span className="green-text">●</span></span></div>
+          <section className="context-panel"><div className="section-head"><span className="eyebrow">REAL-WORLD CONTEXT // LOCATION LOCKED</span><span className="context-lock">SOURCES VERIFIED / FIXTURES LABELED</span></div><div className="context-grid">{localContext.length === 0 ? <p className="empty-copy">No local context loaded. Scan a real location to pull in verified events, news, and pop culture.</p> : localContext.map((item) => <article className="context-card" key={item.place}><div className="context-card-top"><span className={`context-status ${item.status.toLowerCase()}`}>{item.status}</span><span>{item.tag}</span></div><p className="eyebrow">{item.place} · {item.landmark}</p><h3>{item.headline}</h3><p>{item.detail}</p><div className="context-source"><span>{item.source} · {item.time}</span><a href={item.href} target="_blank" rel="noreferrer">OPEN SOURCE ↗</a></div></article>)}</div></section>
         </section>
 
         <aside className="side-panel">
           <div className="operator-row"><div><p className="eyebrow">OPERATIVE 0042</p><h2>RAVEN<span className="green-text">_</span></h2></div><div className="level">LVL <b>07</b><small>2,840 XP</small></div></div>
           <div className="stats"><div><strong>{xp.toLocaleString()}</strong><span>XP TOTAL</span></div><div><strong>{streak}<i>×</i></strong><span>STREAK</span></div><div><strong>12</strong><span>CLAIMED</span></div></div>
-          <div className="phone-card"><div className="card-top"><span className={`status-dot ${phase === 'claimed' ? 'green' : ''}`} /> {status}<span className="signal-bars"><i /><i /><i /></span></div><div className="phone-title"><div className="phone-icon">☎</div><div><p className="eyebrow">{selected.rarity} SIGNAL // {selected.distance}</p><h3>{selected.name}</h3><span>{selected.area}</span></div></div><p className="clue">“{selected.clue}”</p>{selected.state === 'CONTESTED' && <div className="warning"><Zap /> ANOTHER OPERATIVE IS TRACING THIS SIGNAL</div>}{selected.state === 'JAMMED' && <div className="warning">WORLD EVENT INTERFERENCE — TRY ANOTHER SECTOR</div>}<button className="trace-button" disabled={selected.state === 'JAMMED' || phase === 'claimed'} onClick={phase === 'connected' ? claimNode : traceSignal}>{phase === 'connected' ? 'ANSWER & CLAIM' : phase === 'claimed' ? 'CLAIMED ✓' : selected.state === 'JAMMED' ? 'SIGNAL UNAVAILABLE' : 'TRACE SIGNAL'}<ChevronRight data-icon="inline-end" /></button><div className="phone-meta"><span><MapPin /> {selected.distance} away</span><span><Zap /> +{selected.xp} XP</span></div></div>
+          <div className="phone-card"><div className="card-top"><span className={`status-dot ${phase === 'claimed' ? 'green' : ''}`} /> {status}<span className="signal-bars"><i /><i /><i /></span></div><div className="phone-title"><div className="phone-icon">☎</div><div><p className="eyebrow">{selected ? `${selected.rarity} SIGNAL // ${selected.distance}` : 'NO SIGNAL LOCKED'}</p><h3>{selected?.name ?? 'NO SIGNAL LOCKED'}</h3><span>{selected?.area ?? 'Scan a real location to begin'}</span></div></div><p className="clue">“{selected?.clue ?? 'Scan a real location to discover your first signal.'}”</p>{selected?.state === 'CONTESTED' && <div className="warning"><Zap /> ANOTHER OPERATIVE IS TRACING THIS SIGNAL</div>}{selected?.state === 'JAMMED' && <div className="warning">WORLD EVENT INTERFERENCE — TRY ANOTHER SECTOR</div>}<button className="trace-button" disabled={!selected || selected?.state === 'JAMMED' || phase === 'claimed'} onClick={phase === 'connected' ? claimNode : traceSignal}>{phase === 'connected' ? 'ANSWER & CLAIM' : phase === 'claimed' ? 'CLAIMED ✓' : selected?.state === 'JAMMED' ? 'SIGNAL UNAVAILABLE' : 'TRACE SIGNAL'}<ChevronRight data-icon="inline-end" /></button><div className="phone-meta"><span><MapPin /> {selected?.distance} away</span><span><Zap /> +{selected?.xp ?? 0} XP</span></div></div>
 
           <div className="mission"><div className="section-head"><span className="eyebrow">DAILY HUNT // 04:13:22 LEFT</span><span className="mission-count">2 / 3</span></div><h3>Answer 3 ringing phones</h3><div className="progress"><span style={{ width: '66%' }} /></div><p>Bonus: <b>+500 XP</b> and a rare signal radar</p></div>
           <div className="events-list"><div className="section-head"><span className="eyebrow">LIVE WORLD FEED</span><button aria-label="Refresh events" onClick={() => setEventTick(129)}>↻</button></div>{events.map((event) => <div className="feed-item" key={event.title}><span className={`feed-icon ${event.color}`}>{event.kind === 'WEATHER' ? '≋' : event.kind === 'TRANSIT' ? '→' : '✦'}</span><div><b>{event.title}</b><p>{event.detail}</p></div><time>{event.time}</time></div>)}</div>
