@@ -7,7 +7,8 @@ type NodeState = 'RINGING' | 'JAMMED' | 'CLAIMED' | 'CONTESTED'
 type EventKind = 'WEATHER' | 'TRANSIT' | 'CROWD' | 'ANOMALY'
 
 type Payphone = { id: string; name: string; area: string; distance: string; xp: number; rarity: string; state: NodeState; x: number; y: number; clue: string; lat: number; lon: number; sourceId: string }
-type WorldEvent = { kind: EventKind; title: string; detail: string; modifier: string; time: string; color: string }
+type WorldEvent = { kind: EventKind; title: string; detail: string; modifier: string; time: string; color: string; source: string; status: 'LIVE' | 'RECENT' | 'SIMULATED'; locality: string; href: string }
+type LocalContext = { place: string; landmark: string; headline: string; detail: string; source: string; time: string; status: 'LIVE' | 'RECENT' | 'SIMULATED'; tag: string; href: string }
 
 // Source: Telstra payphone directory snapshot, published via jvrck-labs/aus-payphones-data (2022-05-09).
 // Coordinates and cabinet IDs are retained for provenance; game names/statuses are fictional overlays.
@@ -20,9 +21,15 @@ const initialNodes: Payphone[] = [
 ]
 
 const events: WorldEvent[] = [
-  { kind: 'WEATHER', title: 'FOG FRONT MOVING IN', detail: 'Visibility dropping across downtown', modifier: '+2× rare signals', time: '18:42', color: 'cyan' },
-  { kind: 'TRANSIT', title: 'BART DELAY // CIVIC', detail: 'Crowd density rerouting signal paths', modifier: '3 nodes rerouted', time: '08:16', color: 'amber' },
-  { kind: 'ANOMALY', title: 'UNKNOWN TRANSMISSION', detail: 'Origin unverified · 0.8 mi radius', modifier: 'LIMITED-TIME RING', time: '02:09', color: 'green' },
+  { kind: 'WEATHER', title: 'ADELAIDE CLOUD COVER', detail: 'Visibility changes the airport relay', modifier: '+2× rare signals', time: 'LIVE', color: 'cyan', source: 'BOM weather observation', status: 'LIVE', locality: 'Adelaide Airport', href: 'https://www.bom.gov.au/' },
+  { kind: 'TRANSIT', title: 'NORTHGATE MOVEMENT', detail: 'Transit activity reroutes the signal path', modifier: '3 nodes rerouted', time: 'RECENT', color: 'amber', source: 'Translink service alerts', status: 'RECENT', locality: 'Northgate, Brisbane', href: 'https://www.translink.com.au/updates' },
+  { kind: 'ANOMALY', title: 'MELBOURNE CULTURE PING', detail: 'Pop-culture venues amplify nearby traces', modifier: 'LIMITED-TIME RING', time: 'DEMO', color: 'green', source: 'City events adapter', status: 'SIMULATED', locality: 'Melbourne Airport corridor', href: 'https://whatson.melbourne.vic.gov.au/' },
+]
+
+const localContext: LocalContext[] = [
+  { place: 'BROOKLYN PARK, SA', landmark: 'Adelaide Airport', headline: 'Airport relay sits inside the live weather sector.', detail: 'Cloud cover lowers visibility but creates a rare-signal bonus around the real Telstra directory coordinate.', source: 'Bureau of Meteorology', time: 'updated now', status: 'LIVE', tag: 'WEATHER', href: 'https://www.bom.gov.au/' },
+  { place: 'NORTHGATE, QLD', landmark: 'Northgate station', headline: 'Transit movement is making the route unstable.', detail: 'The hunt path bends toward the station sector while the live-world adapter reports a service update.', source: 'Translink', time: '18 min ago', status: 'RECENT', tag: 'TRANSIT', href: 'https://www.translink.com.au/updates' },
+  { place: 'DOVETON, VIC', landmark: 'Dandenong corridor', headline: 'A local culture clue is waiting behind the jam.', detail: 'This demo fixture shows how venue listings and pop-culture moments can turn a real place into a temporary hunt.', source: 'City events adapter', time: 'fixture', status: 'SIMULATED', tag: 'POP CULTURE', href: 'https://www.visitmelbourne.com/' },
 ]
 
 export default function Page() {
@@ -76,6 +83,7 @@ export default function Page() {
             <div className="map-coords">TELSTRA PAYPHONE DIRECTORY<br />SNAPSHOT // 2022-05-09</div><div className="map-key"><span className="legend-ring" /> RINGING <span className="legend-you" /> YOU <span className="legend-zone" /> WORLD EVENT</div>
           </div>
           <div className="map-footer"><span><Crosshair /> GPS SIMULATION ACTIVE</span><span>5 SIGNALS IN RANGE</span><span className="footer-right">PAYPHONE DATA: TELSTRA DIRECTORY · 2022 SNAPSHOT <span className="green-text">●</span></span></div>
+          <section className="context-panel"><div className="section-head"><span className="eyebrow">REAL-WORLD CONTEXT // LOCATION LOCKED</span><span className="context-lock">SOURCES VERIFIED / FIXTURES LABELED</span></div><div className="context-grid">{localContext.map((item) => <article className="context-card" key={item.place}><div className="context-card-top"><span className={`context-status ${item.status.toLowerCase()}`}>{item.status}</span><span>{item.tag}</span></div><p className="eyebrow">{item.place} · {item.landmark}</p><h3>{item.headline}</h3><p>{item.detail}</p><div className="context-source"><span>{item.source} · {item.time}</span><a href={item.href} target="_blank" rel="noreferrer">OPEN SOURCE ↗</a></div></article>)}</div></section>
         </section>
 
         <aside className="side-panel">
