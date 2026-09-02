@@ -15,7 +15,7 @@ export default function ProjectsPage() {
   useEffect(() => {
     async function loadProjects() {
       try {
-        const data = await api.get('/api/projects')
+        const data = await api.get<any[]>('/api/projects')
         setProjects(data)
       } catch (error) {
         console.error('Failed to load projects:', error)
@@ -34,12 +34,10 @@ export default function ProjectsPage() {
           <h1 className="text-3xl font-bold text-foreground">Projects</h1>
           <p className="text-muted-foreground mt-1">Manage all active and completed projects</p>
         </div>
-        <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
-          <Link href="/projects/new">
-            <Plus className="w-4 h-4 mr-2" />
-            New Project
-          </Link>
-        </Button>
+        <Link href="/projects/new" className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+          <Plus className="mr-2 h-4 w-4" />
+          New Project
+        </Link>
       </div>
 
       <Card className="bg-card border-border">
@@ -57,9 +55,7 @@ export default function ProjectsPage() {
           ) : projects.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground mb-4">No projects yet. Create your first project to get started.</p>
-              <Button asChild>
-                <Link href="/projects/new">Create Project</Link>
-              </Button>
+              <Link href="/projects/new" className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">Create Project</Link>
             </div>
           ) : (
             <div className="space-y-3">

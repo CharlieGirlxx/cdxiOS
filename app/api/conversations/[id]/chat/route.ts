@@ -15,9 +15,10 @@ const client = new Anthropic({
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await connectDB();
     const user = getAuthUser(req);
     if (!user) {
@@ -29,7 +30,7 @@ export async function POST(
 
     // Fetch conversation
     const conversation = await Conversation.findOne({
-      id: params.id,
+      id,
       user_id: user.id,
     });
 
@@ -51,7 +52,7 @@ export async function POST(
     });
 
     // Prepare messages for API
-    const messages = conversation.messages.map((m) => ({
+    const messages = conversation.messages.map((m: { role: string; content: string }) => ({
       role: m.role as 'user' | 'assistant' | 'system',
       content: m.content,
     }));
@@ -61,7 +62,7 @@ export async function POST(
       model: agent.model,
       max_tokens: 1024,
       system: agent.system_prompt,
-      messages: messages.filter((m) => m.role !== 'system'),
+      messages: messages.filter((m: { role: 'user' | 'assistant' | 'system'; content: string }) => m.role !== 'system'),
     });
 
     const assistantMessage =

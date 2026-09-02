@@ -1,14 +1,14 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGODB_URI || '';
 
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable');
-}
+type MongooseCache = { conn: typeof mongoose | null; promise: Promise<typeof mongoose> | null };
+const globalWithMongoose = globalThis as typeof globalThis & { mongoose?: MongooseCache };
 
-let cached = global.mongoose || { conn: null, promise: null };
+let cached: MongooseCache = globalWithMongoose.mongoose || { conn: null, promise: null };
 
 export async function connectDB() {
+  if (!MONGODB_URI) throw new Error('MONGODB_URI is not configured');
   if (cached.conn) {
     return cached.conn;
   }

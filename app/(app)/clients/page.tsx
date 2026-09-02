@@ -15,7 +15,7 @@ export default function ClientsPage() {
   useEffect(() => {
     async function loadClients() {
       try {
-        const data = await api.get('/api/clients')
+        const data = await api.get<any[]>('/api/clients')
         setClients(data)
       } catch (error) {
         console.error('Failed to load clients:', error)
@@ -34,12 +34,10 @@ export default function ClientsPage() {
           <h1 className="text-3xl font-bold text-foreground">Clients</h1>
           <p className="text-muted-foreground mt-1">Manage all your client relationships</p>
         </div>
-        <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
-          <Link href="/clients/new">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Client
-          </Link>
-        </Button>
+        <Link href="/clients/new" className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+          <Plus className="mr-2 h-4 w-4" />
+          Add Client
+        </Link>
       </div>
 
       <Card className="bg-card border-border">
@@ -57,9 +55,7 @@ export default function ClientsPage() {
           ) : clients.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground mb-4">No clients yet. Add your first client to get started.</p>
-              <Button asChild>
-                <Link href="/clients/new">Add Client</Link>
-              </Button>
+              <Link href="/clients/new" className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">Add Client</Link>
             </div>
           ) : (
             <div className="space-y-3">

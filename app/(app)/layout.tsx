@@ -86,12 +86,10 @@ export default function AppLayout({
           <SidebarMenu>
             {navItems.map((item) => (
               <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton asChild>
-                  <Link href={item.href} className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-sidebar-accent/20 transition">
-                    <item.icon className="w-5 h-5" />
-                    <span>{item.label}</span>
-                  </Link>
-                </SidebarMenuButton>
+                <Link href={item.href} className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-sidebar-accent/20 transition">
+                  <item.icon className="h-5 w-5" />
+                  <span>{item.label}</span>
+                </Link>
               </SidebarMenuItem>
             ))}
           </SidebarMenu>
@@ -99,17 +97,12 @@ export default function AppLayout({
 
         <SidebarFooter className="border-t border-sidebar-border p-4">
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="w-full justify-between px-3 py-2 h-auto text-sidebar-foreground hover:bg-sidebar-accent/20"
-              >
-                <div className="text-left">
-                  <p className="text-sm font-medium">{user?.full_name}</p>
-                  <p className="text-xs text-sidebar-foreground/60">{user?.email}</p>
-                </div>
-                <ChevronDown className="w-4 h-4" />
-              </Button>
+            <DropdownMenuTrigger className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sidebar-foreground hover:bg-sidebar-accent/20">
+              <div>
+                <p className="text-sm font-medium">{user?.full_name}</p>
+                <p className="text-xs text-sidebar-foreground/60">{user?.email}</p>
+              </div>
+              <ChevronDown className="h-4 w-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem onClick={handleLogout} className="text-destructive">

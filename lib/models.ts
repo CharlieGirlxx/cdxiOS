@@ -157,7 +157,7 @@ const milestoneSchema = new Schema<IMilestone>(
 );
 
 // Agent schema
-export interface IAgent extends Document {
+export interface IAgent {
   id: string;
   name: string;
   role: string;
