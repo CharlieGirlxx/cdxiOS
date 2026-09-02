@@ -1,7 +1,9 @@
 'use client'
 
+import useSWR from 'swr'
 import { useEffect, useMemo, useState } from 'react'
-import { Activity, Bell, ChevronRight, Crosshair, MapPin, Radio, Shield, Signal, Zap } from 'lucide-react'
+import { Activity, Bell, ChevronRight, Crosshair, MapPin, Radio, Shield, Zap } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 type NodeState = 'RINGING' | 'JAMMED' | 'CLAIMED' | 'CONTESTED'
 type EventKind = 'WEATHER' | 'TRANSIT' | 'CROWD' | 'ANOMALY'
@@ -18,13 +20,41 @@ const events: WorldEvent[] = []
 const localContext: LocalContext[] = []
 
 export default function Page() {
-  const [nodes, setNodes] = useState(initialNodes)
+  const supabase = useMemo(() => createClient(), [])
+  const { data: nodeRows, error: nodeError, isLoading: nodesLoading, mutate } = useSWR('payphone-nodes', async () => {
+    const { data, error } = await supabase
+      .from('payphone_nodes')
+      .select('id, source_id, name, area, latitude, longitude, state, source_url')
+      .order('area', { ascending: true })
+    if (error) throw error
+    return data ?? []
+  }, { revalidateOnFocus: false })
+  const [nodes, setNodes] = useState<Payphone[]>(initialNodes)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [phase, setPhase] = useState<'idle' | 'tracing' | 'connected' | 'claimed'>('idle')
   const [xp, setXp] = useState(0)
   const [streak, setStreak] = useState(0)
   const [eventTick, setEventTick] = useState(129)
   const selected = useMemo(() => nodes.find((node) => node.id === selectedId), [nodes, selectedId])
+
+  useEffect(() => {
+    if (!nodeRows) return
+    setNodes(nodeRows.map((row, index) => ({
+      id: row.id,
+      sourceId: row.source_id,
+      name: row.name,
+      area: row.area,
+      distance: '—',
+      xp: 100,
+      rarity: 'DIRECTORY',
+      state: row.state as NodeState,
+      x: 18 + ((index * 17) % 68),
+      y: 20 + ((index * 29) % 58),
+      clue: 'Verified directory location. Move safely and confirm the surroundings before playing.',
+      lat: row.latitude,
+      lon: row.longitude,
+    })))
+  }, [nodeRows])
 
   useEffect(() => {
     const timer = window.setInterval(() => setEventTick((value) => (value > 0 ? value - 1 : 129)), 1000)
@@ -66,7 +96,7 @@ export default function Page() {
             <div className="player"><span /><b>YOU</b></div>
             {nodes.map((node) => <button key={node.id} className={`node node-${node.state.toLowerCase()} ${selectedId === node.id ? 'selected' : ''}`} style={{ left: `${node.x}%`, top: `${node.y}%` }} onClick={() => { setSelectedId(node.id); setPhase('idle') }} aria-label={`${node.name}, ${node.state}`}><span className="node-ring" /><strong>{node.state === 'RINGING' ? '☎' : node.state === 'CLAIMED' ? '✓' : node.state === 'CONTESTED' ? '!' : '×'}</strong><small>{node.id}</small></button>)}
             <div className="event-zone"><span /><b>ANOMALY ZONE</b><small>0.8 MI RADIUS</small></div>
-            <div className="map-coords">NO LOCATION LOCKED<br />SCAN TO START A FRESH GAME</div><div className="map-key"><span className="legend-ring" /> RINGING <span className="legend-you" /> YOU <span className="legend-zone" /> WORLD EVENT</div>
+            <div className="map-coords">{nodesLoading ? <>LOADING DIRECTORY NODES<br />CONNECTING TO SUPABASE</> : nodeError ? <>NODE DATABASE UNAVAILABLE<br />CHECK SUPABASE CONNECTION</> : nodes.length === 0 ? <>NO DIRECTORY NODES LOADED<br />SYNC A VERIFIED LOCATION DATASET</> : <>LOCATION DATA LOADED<br />{nodes.length} VERIFIED PAYPHONES IN RANGE</>} </div><div className="map-key"><span className="legend-ring" /> RINGING <span className="legend-you" /> YOU <span className="legend-zone" /> WORLD EVENT</div>
           </div>
           <div className="map-footer"><span><Crosshair /> GPS SIMULATION ACTIVE</span><span>{nodes.length} SIGNALS IN RANGE</span><span className="footer-right">PAYPHONE DATA: TELSTRA DIRECTORY · 2022 SNAPSHOT <span className="green-text">●</span></span></div>
           <section className="context-panel"><div className="section-head"><span className="eyebrow">REAL-WORLD CONTEXT // LOCATION LOCKED</span><span className="context-lock">SOURCES VERIFIED / FIXTURES LABELED</span></div><div className="context-grid">{localContext.length === 0 ? <p className="empty-copy">No local context loaded. Scan a real location to pull in verified events, news, and pop culture.</p> : localContext.map((item) => <article className="context-card" key={item.place}><div className="context-card-top"><span className={`context-status ${item.status.toLowerCase()}`}>{item.status}</span><span>{item.tag}</span></div><p className="eyebrow">{item.place} · {item.landmark}</p><h3>{item.headline}</h3><p>{item.detail}</p><div className="context-source"><span>{item.source} · {item.time}</span><a href={item.href} target="_blank" rel="noreferrer">OPEN SOURCE ↗</a></div></article>)}</div></section>
